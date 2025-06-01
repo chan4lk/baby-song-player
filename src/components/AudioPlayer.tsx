@@ -7,7 +7,10 @@ interface AudioPlayerProps {
 const AudioPlayer = ({ songs }: AudioPlayerProps) => {
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
   const isUserInitiatedPause = useRef<boolean>(false);
   
   // Get the filename without extension for display
@@ -63,6 +66,33 @@ const AudioPlayer = ({ songs }: AudioPlayerProps) => {
         });
         setIsPlaying(true);
       }
+    }
+  };
+
+  // Format time in MM:SS format
+  const formatTime = (time: number): string => {
+    if (isNaN(time)) return '00:00';
+    
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Handle seeking when user clicks on the progress bar
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressBarRef.current || !audioRef.current) return;
+    
+    const progressBar = progressBarRef.current;
+    const bounds = progressBar.getBoundingClientRect();
+    const x = e.clientX - bounds.left;
+    const width = bounds.width;
+    const percentage = x / width;
+    
+    // Set the current time based on the click position
+    const newTime = percentage * duration;
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
     }
   };
 
@@ -131,10 +161,20 @@ const AudioPlayer = ({ songs }: AudioPlayerProps) => {
         preloadNextSong();
       }
     };
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audioElement.currentTime);
+    };
+
+    const handleDurationChange = () => {
+      setDuration(audioElement.duration);
+    };
     
     // Add event listeners
     audioElement.addEventListener('ended', handleEnded);
     audioElement.addEventListener('canplay', handleCanPlay);
+    audioElement.addEventListener('timeupdate', handleTimeUpdate);
+    audioElement.addEventListener('durationchange', handleDurationChange);
     
     // Load the current song
     audioElement.load();
@@ -143,6 +183,8 @@ const AudioPlayer = ({ songs }: AudioPlayerProps) => {
       // Clean up event listeners using the stored reference
       audioElement.removeEventListener('ended', handleEnded);
       audioElement.removeEventListener('canplay', handleCanPlay);
+      audioElement.removeEventListener('timeupdate', handleTimeUpdate);
+      audioElement.removeEventListener('durationchange', handleDurationChange);
     };
   }, [currentSongIndex, isPlaying, songs.length, playNextSong, preloadNextSong]);
   
@@ -181,7 +223,6 @@ const AudioPlayer = ({ songs }: AudioPlayerProps) => {
       
       <audio 
         ref={audioRef}
-        controls
         preload="auto"
         crossOrigin="anonymous"
         onPlay={() => {
@@ -198,6 +239,22 @@ const AudioPlayer = ({ songs }: AudioPlayerProps) => {
         />
         Your browser does not support the audio element.
       </audio>
+      
+      {/* Custom progress bar */}
+      <div className="progress-container">
+        <div className="time-display">{formatTime(currentTime)}</div>
+        <div 
+          className="progress-bar" 
+          ref={progressBarRef}
+          onClick={handleSeek}
+        >
+          <div 
+            className="progress" 
+            style={{ width: `${(currentTime / duration) * 100 || 0}%` }}
+          ></div>
+        </div>
+        <div className="time-display">{formatTime(duration)}</div>
+      </div>
       
       <div className="controls">
         <button onClick={playPreviousSong} className="control-button">
