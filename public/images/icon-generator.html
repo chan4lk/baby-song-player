@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator</title>
+  <style>
+    canvas {
+      border: 1px solid #ccc;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Baby Song Player Icon Generator</h1>
+  <canvas id="icon192" width="192" height="192"></canvas>
+  <canvas id="icon512" width="512" height="512"></canvas>
+  
+  <script>
+    // Function to draw the icon
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      
+      // Background
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#4a6da7');
+      gradient.addColorStop(1, '#efd3d7');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+      
+      // Music note
+      ctx.fillStyle = 'white';
+      const noteSize = size * 0.6;
+      const noteX = (size - noteSize) / 2;
+      const noteY = (size - noteSize) / 2;
+      
+      // Draw a music note
+      ctx.beginPath();
+      ctx.arc(noteX + noteSize * 0.7, noteY + noteSize * 0.3, noteSize * 0.2, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      ctx.beginPath();
+      ctx.moveTo(noteX + noteSize * 0.7 + noteSize * 0.15, noteY + noteSize * 0.3);
+      ctx.lineTo(noteX + noteSize * 0.7 + noteSize * 0.15, noteY + noteSize * 0.8);
+      ctx.lineTo(noteX + noteSize * 0.3, noteY + noteSize * 0.8);
+      ctx.lineTo(noteX + noteSize * 0.3, noteY + noteSize * 0.7);
+      ctx.arc(noteX + noteSize * 0.3, noteY + noteSize * 0.6, noteSize * 0.1, Math.PI/2, -Math.PI/2, true);
+      ctx.lineTo(noteX + noteSize * 0.3, noteY + noteSize * 0.5);
+      ctx.lineTo(noteX + noteSize * 0.7 + noteSize * 0.15, noteY + noteSize * 0.3);
+      ctx.fill();
+      
+      // Download link
+      const link = document.createElement('a');
+      link.download = `icon-${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.textContent = `Download ${size}x${size} icon`;
+      link.style.display = 'block';
+      link.style.margin = '10px';
+      document.body.appendChild(link);
+    }
+    
+    // Draw icons
+    window.onload = function() {
+      drawIcon(document.getElementById('icon192'), 192);
+      drawIcon(document.getElementById('icon512'), 512);
+    };
+  </script>
+</body>
+</html>
